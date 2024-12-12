@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -70,4 +71,65 @@ public class AdministradorBaseDatos extends SQLiteOpenHelper {
 
         return result != -1; // Devuelve true si la inserción fue exitosa
     }
+    public ArrayList<String> getEventosTitles() {
+        ArrayList<String> eventos = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT titulo FROM eventos", null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                eventos.add(cursor.getString(0));
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+        return eventos;
+    }
+    public void eliminarEventoPorTitulo(String titulo) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete("eventos", "titulo = ?", new String[]{titulo});
+        db.close();
+    }
+    public boolean insertarEvento(Evento evento, int usuarioId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // Log para verificar si el usuario existe
+        Cursor cursor = db.rawQuery("SELECT id FROM usuarios WHERE id = ?", new String[]{String.valueOf(usuarioId)});
+        if (!cursor.moveToFirst()) {
+            Log.e("DB_ERROR", "Usuario no encontrado con ID: " + usuarioId);
+            cursor.close();
+            db.close();
+            return false;
+        }
+        cursor.close();
+
+        // Log para los datos del evento
+        Log.d("DB_INSERT", "Insertando evento: " +
+                "Título=" + evento.getTitulo() + ", Fecha=" + evento.getFecha() +
+                ", Importancia=" + evento.getImportancia() + ", Observación=" + evento.getObservacion() +
+                ", Lugar=" + evento.getLugar() + ", TiempoAviso=" + evento.getTiempoAviso() +
+                ", UsuarioId=" + usuarioId);
+
+        ContentValues values = new ContentValues();
+        values.put("titulo", evento.getTitulo());
+        values.put("fecha", evento.getFecha());
+        values.put("importancia", evento.getImportancia());
+        values.put("observacion", evento.getObservacion());
+        values.put("lugar", evento.getLugar());
+        values.put("tiempo_aviso", evento.getTiempoAviso());
+        values.put("usuario_id", usuarioId);
+
+        long result = db.insert("eventos", null, values);
+
+        if (result == -1) {
+            Log.e("DB_ERROR", "Error al insertar el evento en la base de datos");
+        } else {
+            Log.d("DB_INSERT", "Evento insertado con éxito, ID=" + result);
+        }
+
+        db.close();
+        return result != -1;
+    }
+
 }

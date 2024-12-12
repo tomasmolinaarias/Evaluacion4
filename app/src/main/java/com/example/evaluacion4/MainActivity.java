@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
             if (cursor.moveToFirst()) {
                 int userId = cursor.getInt(0); // Obtenemos el ID del usuario
                 Intent intent = new Intent(MainActivity.this, EventosActivity.class);
-                intent.putExtra("userId", userId); // Enviamos el ID a la siguiente actividad
+                intent.putExtra("userId", userId); // Pasamos el ID como extra
                 startActivity(intent);
                 finish(); // Cerramos la actividad actual
             } else {
